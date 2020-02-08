@@ -13,6 +13,8 @@ Used to calculate the similarity between expected tail vector and real one.
 ==> return: shape(N, entityNum)The similarity between each vector in expTailMatrix 
             and all vectors in tailEmbedding.
 '''
+HITS = 0
+
 def calSimilarity(expTailMatrix:np.ndarray, tailEmbedding:np.ndarray, simMeasure="dot"):
     if simMeasure == "dot":
         return np.matmul(expTailMatrix, tailEmbedding.T)
@@ -198,7 +200,7 @@ def evalTransA(head, relation, tail, **kwargs):
     return ranks
 
 
-def EvalMetric(simScore:np.ndarray, tail:np.ndarray, simMeasure:str):
+def HITSMetric(simScore:np.ndarray, tail:np.ndarray, simMeasure:str):
     '''
     np.arange(tail.shape[0]) get an array of size tail.shape[0] {0,1,2,...}.
     simScore[np.arange(tail.shape[0]), tail] get an array of size tail.shape[0], and its row's and 
@@ -209,17 +211,15 @@ def EvalMetric(simScore:np.ndarray, tail:np.ndarray, simMeasure:str):
     # tail: shape(50000)
     # railScore: shape(50000)
     realScore = simScore[np.arange(tail.shape[0]), tail].reshape((-1,1))
-    simScore = np.sort(simScore, axis=1)
-    totalRanks = 0
+    tempScore = np.sort(simScore, axis=1)
     hits = 0
-    for i in range(0,simScore.shape[0]):
-        for j in range(0, simScore.shape[1]):
-            if realScore[i] == simScore[i, j]:
-                totalRanks += j+1
+    for i in range(0,tempScore.shape[0]):
+        for j in range(0, tempScore.shape[1]):
+            if realScore[i] == tempScore[i, j]:
                 if j < 10:
                     hits += 1
                 break
-    return [totalRanks, hits]
+    return hits
     
         
 def calKLSim(headMatrix, headCoMatrix, relationMatrix, relationCoMatrix, tailMatrix, tailCoMatrix, simMeasure="KL"):
@@ -252,8 +252,9 @@ def evalKG2E(head, relation, tail, **kwargs):
     relationm = np.take(kwargs["relationEmbed"], indices=relation, axis=0)
     # Calculate simScore
     simScore = calKLSim(headm, headv, relationm, relationv, kwargs["entityEmbed"], kwargs["entityCovar"], simMeasure=kwargs["Sim"])
-    #ranks = calRank(simScore, tail, simMeasure="L2")
-    ranks = EvalMetric(simScore, tail, simMeasure="L2")
+    HITS += HITSMetric(simScore, tail, simMeasure="L2")
+    ranks = calRank(simScore, tail, simMeasure="L2")
+    
     return ranks
 
 '''
@@ -265,41 +266,9 @@ Implementation of MR metric, MR represents Mean Rank Metric
 '''
 
 def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
-    #R = 0
-    N = 0
-    MR = 0
-    HITS = 0
-    for tri in evalloader:
-        # tri : shape(N, 3)
-        # head : shape(N, 1) ==> shape(N)
-        # relation : shape(N, 1) ==> shape(N)
-        # tail : shape(N, 1) ==> shape(N)
-        tri = tri.numpy()
-        head, relation, tail = tri[:, 0], tri[:, 1], tri[:, 2]
-        if model == "TransE":
-            ranks = evalTransE(head, relation, tail, simMeasure, **kwargs)
-        elif model == "TransH":
-            ranks = evalTransH(head, relation, tail, simMeasure, **kwargs)
-        elif model == "TransD":
-            ranks = evalTransD(head, relation, tail, simMeasure, **kwargs)
-        elif model == "TransA":
-            ranks = evalTransA(head, relation, tail, **kwargs)
-        elif model == "KG2E":
-            ranks = evalKG2E(head, relation, tail, **kwargs)
-        else:
-            print("ERROR : The %s evaluation is not supported!" % model)
-            exit(1)
-        #R += np.sum(ranks)
-        #N += ranks.shape[0]
-        MR += ranks[0]
-        HITS += ranks[1]
-        N += head.shape[0]
-    return [(MR/N), (HITS/N)]
-    #return (R / N)
-'''
-def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
     R = 0
     N = 0
+    HITS = 0
     for tri in evalloader:
         # tri : shape(N, 3)
         # head : shape(N, 1) ==> shape(N)
@@ -322,7 +291,7 @@ def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
             exit(1)
         R += np.sum(ranks)
         N += ranks.shape[0]
-    return (R / N)
+    return [(R / N), (HITS / N)]
 '''
 
 
