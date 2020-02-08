@@ -70,6 +70,7 @@ class KG2E(nn.Module):
         head, relation, tail = torch.chunk(input=inputTriples,
                                            chunks=3,
                                            dim=1)
+
         # Embedding(input): extract the tensors of the index in input
         headm = torch.squeeze(self.entityEmbedding(head), dim=1)
         headv = torch.squeeze(self.entityCovar(head), dim=1)

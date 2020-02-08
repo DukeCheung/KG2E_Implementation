@@ -90,11 +90,11 @@ def generateDict(dataPath, dictSaveDir):
     headCounter = Counter(rawDf["head"])
     tailCounter = Counter(rawDf["tail"])
     relaCounter = Counter(rawDf["relation"])
-
+    
     # Generate entity and relation list
     entityList = list((headCounter + tailCounter).keys())
     relaList = list(relaCounter.keys())
-
+    
     # Transform to index dict
     print("INFO : Transform to index dict")
     entityDict = dict([(word, ind) for ind, word in enumerate(entityList)])

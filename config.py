@@ -62,7 +62,6 @@ class Config():
         self.learningrate = 0.01
         self.lrdecay = 0.96
         self.lrdecayepoch = 5
-        # self.optimizer = "Adam" Origin
         self.optimizer = "Adam"
         self.evalmethod = "MR"
         self.simmeasure = "L2"

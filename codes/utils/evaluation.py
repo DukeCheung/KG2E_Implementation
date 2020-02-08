@@ -53,6 +53,15 @@ There are three steps to implement:
            as the rank of the real entity.
 '''
 def calRank(simScore:np.ndarray, tail:np.ndarray, simMeasure:str):
+    '''
+    np.arange(tail.shape[0]) get an array of size tail.shape[0] {0,1,2,...}.
+    simScore[np.arange(tail.shape[0]), tail] get an array of size tail.shape[0], and its row's and 
+    col's index is from np.arange(tail.shape[0]) and tail respectively.
+    simScore[,].reshape(-1,1) (N,1) --> (1,N)
+    '''
+    # simScore: shape(50000, 14951)
+    # tail: shape(50000)
+    # railScore: shape(50000)
     realScore = simScore[np.arange(tail.shape[0]), tail].reshape((-1,1))
     judMatrix = simScore - realScore
     if simMeasure == "dot" or simMeasure == "cos":
@@ -188,11 +197,37 @@ def evalTransA(head, relation, tail, **kwargs):
     ranks = calRank(simScore, tail, simMeasure="L2")
     return ranks
 
+
+def EvalMetric(simScore:np.ndarray, tail:np.ndarray, simMeasure:str):
+    '''
+    np.arange(tail.shape[0]) get an array of size tail.shape[0] {0,1,2,...}.
+    simScore[np.arange(tail.shape[0]), tail] get an array of size tail.shape[0], and its row's and 
+    col's index is from np.arange(tail.shape[0]) and tail respectively.
+    simScore[,].reshape(-1,1) (N,1) --> (1,N)
+    '''
+    # simScore: shape(50000, 14951)
+    # tail: shape(50000)
+    # railScore: shape(50000)
+    realScore = simScore[np.arange(tail.shape[0]), tail].reshape((-1,1))
+    simScore = np.sort(simScore, axis=1)
+    totalRanks = 0
+    hits = 0
+    for i in range(0,simScore.shape[0]):
+        for j in range(0, simScore.shape[1]):
+            if realScore[i] == simScore[i, j]:
+                totalRanks += j+1
+                if j < 10:
+                    hits += 1
+                break
+    return [totalRanks, hits]
+    
+        
 def calKLSim(headMatrix, headCoMatrix, relationMatrix, relationCoMatrix, tailMatrix, tailCoMatrix, simMeasure="KL"):
     simScore = []
     for hM, hC, rM, rC in tqdm(zip(headMatrix, headCoMatrix, relationMatrix, relationCoMatrix)):
         # (N, E) - (E, )
         # (N, E) + (E, )
+        # for every row in EntityEmbedding Matrix, EntityEmbedding[i] -= hM
         errorm = tailMatrix - hM
         errorv = tailCoMatrix + hC
         if simMeasure == "KL":
@@ -211,13 +246,20 @@ def calKLSim(headMatrix, headCoMatrix, relationMatrix, relationCoMatrix, tailMat
 
 def evalKG2E(head, relation, tail, **kwargs):
     # Gather embedding
+    print('head')
+    print(head)
     headv = np.take(kwargs["entityCovar"], indices=head, axis=0)
+    print('headV')
+    print(headv.shape)
+    print('entityEmbed')
+    print(kwargs["entityEmbed"].shape)
     headm = np.take(kwargs["entityEmbed"], indices=head, axis=0)
     relationv = np.take(kwargs["relationCovar"], indices=relation, axis=0)
     relationm = np.take(kwargs["relationEmbed"], indices=relation, axis=0)
     # Calculate simScore
     simScore = calKLSim(headm, headv, relationm, relationv, kwargs["entityEmbed"], kwargs["entityCovar"], simMeasure=kwargs["Sim"])
-    ranks = calRank(simScore, tail, simMeasure="L2")
+    #ranks = calRank(simScore, tail, simMeasure="L2")
+    ranks = EvalMetric(simScore, tail, simMeasure="L2")
     return ranks
 
 '''
@@ -227,9 +269,11 @@ Implementation of MR metric, MR represents Mean Rank Metric
 ==> evalloader: Dataloader of evaluation triples
 ==> **kwargs : Neccessary model parameters used to evaluate
 '''
-def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
-    R = 0
+def EvaluationMetric(evalloader:dataloader, model, simMeasure="dot", **kwargs):
+    #R = 0
     N = 0
+    MR = 0
+    HITS = 0
     for tri in evalloader:
         # tri : shape(N, 3)
         # head : shape(N, 1) ==> shape(N)
@@ -250,9 +294,25 @@ def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
         else:
             print("ERROR : The %s evaluation is not supported!" % model)
             exit(1)
-        R += np.sum(ranks)
-        N += ranks.shape[0]
-    return (R / N)
+        #R += np.sum(ranks)
+        #N += ranks.shape[0]
+        MR += ranks[0]
+        HITS += ranks[1]
+        N += head.shape[0]
+    return [(MR/N), (HITS/N)]
+    #return (R / N)
+
+def LinkPredictionMR(evalloader:dataloader, model, simMeasure="dot", **kwargs):
+    return
+
+def LinkPredictionHITS(evalloader:dataloader, model, simMeasure="dot", **kwargs):
+    
+    return
+def ClassificationMR(evalloader:dataloader, model, simMeasure="dot", **kwargs):
+    
+    return
+def ClassificationHITS(evalloader:dataloader, model, simMeasure="dot", **kwargs):
+    return
 
 
 

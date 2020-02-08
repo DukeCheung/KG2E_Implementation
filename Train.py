@@ -210,6 +210,7 @@ class trainTriples():
                 print("="*20+"EPOCHS(%d/%d)"%(epoch+1, EPOCHS)+"="*20)
                 for posX, negX in self.dataloader:
                     # Allocate tensor to devices
+
                     if self.args.usegpu:
                         with torch.cuda.device(self.args.gpunum):
                             posX = Variable(torch.LongTensor(posX).cuda())
@@ -240,6 +241,7 @@ class trainTriples():
                     STEP += 1
                     GLOBALSTEP += 1
                     sumWriter.add_scalar('train/loss', lossVal, global_step=GLOBALSTEP)
+                    
                 if GLOBALEPOCH % self.args.lrdecayepoch == 0:
                     adjust_learning_rate(optimizer, decay=self.args.lrdecay)
                 if GLOBALEPOCH % self.args.evalepoch == 0:
@@ -249,10 +251,12 @@ class trainTriples():
                                                  **self.model.retEvalWeights())
                     sumWriter.add_scalar('train/eval', MR, global_step=GLOBALEPOCH)
                     print("[EVALUATION-EPOCH(%d/%d)]Measure method %s, eval %.4f"% \
-                          (epoch+1, EPOCHS, self.args.evalmethod, MR))
+                          (epoch+1, EPOCHS, self.args.evalmethod, MR[0]))
+                    print("[EVALUATION-EPOCH(%d/%d)]Measure method HITS@10, eval %.4f"% \
+                          (epoch+1, EPOCHS, MR[1]))
                     # Save the model if new MR is better
-                    if MR < bestMR:
-                        bestMR = MR
+                    if MR[0] < bestMR:
+                        bestMR = MR[0]
                         self.saveModel()
                         self.dumpEmbedding()
 
