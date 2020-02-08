@@ -13,7 +13,6 @@ Used to calculate the similarity between expected tail vector and real one.
 ==> return: shape(N, entityNum)The similarity between each vector in expTailMatrix 
             and all vectors in tailEmbedding.
 '''
-HITS = 0
 
 def calSimilarity(expTailMatrix:np.ndarray, tailEmbedding:np.ndarray, simMeasure="dot"):
     if simMeasure == "dot":
@@ -252,10 +251,10 @@ def evalKG2E(head, relation, tail, **kwargs):
     relationm = np.take(kwargs["relationEmbed"], indices=relation, axis=0)
     # Calculate simScore
     simScore = calKLSim(headm, headv, relationm, relationv, kwargs["entityEmbed"], kwargs["entityCovar"], simMeasure=kwargs["Sim"])
-    HITS += HITSMetric(simScore, tail, simMeasure="L2")
+    hits = HITSMetric(simScore, tail, simMeasure="L2")
     ranks = calRank(simScore, tail, simMeasure="L2")
     
-    return ranks
+    return [hits, ranks]
 
 '''
 Implementation of MR metric, MR represents Mean Rank Metric
@@ -289,10 +288,7 @@ def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
         else:
             print("ERROR : The %s evaluation is not supported!" % model)
             exit(1)
-        R += np.sum(ranks)
-        N += ranks.shape[0]
+        HITS += ranks[0]
+        R += np.sum(ranks[1])
+        N += head.shape[0]
     return [(R / N), (HITS / N)]
-'''
-
-
-
