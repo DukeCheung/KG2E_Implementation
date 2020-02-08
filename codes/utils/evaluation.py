@@ -251,10 +251,10 @@ def evalKG2E(head, relation, tail, **kwargs):
     relationm = np.take(kwargs["relationEmbed"], indices=relation, axis=0)
     # Calculate simScore
     simScore = calKLSim(headm, headv, relationm, relationv, kwargs["entityEmbed"], kwargs["entityCovar"], simMeasure=kwargs["Sim"])
-    hits = HITSMetric(simScore, tail, simMeasure="L2")
+    #hits = HITSMetric(simScore, tail, simMeasure="L2")
     ranks = calRank(simScore, tail, simMeasure="L2")
     
-    return [hits, ranks]
+    return ranks
 
 '''
 Implementation of MR metric, MR represents Mean Rank Metric
@@ -264,6 +264,7 @@ Implementation of MR metric, MR represents Mean Rank Metric
 ==> **kwargs : Neccessary model parameters used to evaluate
 '''
 
+'''
 def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
     R = 0
     N = 0
@@ -292,3 +293,30 @@ def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
         R += np.sum(ranks[1])
         N += head.shape[0]
     return [(R / N), (HITS / N)]
+'''
+def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
+    R = 0
+    N = 0
+    for tri in evalloader:
+        # tri : shape(N, 3)
+        # head : shape(N, 1) ==> shape(N)
+        # relation : shape(N, 1) ==> shape(N)
+        # tail : shape(N, 1) ==> shape(N)
+        tri = tri.numpy()
+        head, relation, tail = tri[:, 0], tri[:, 1], tri[:, 2]
+        if model == "TransE":
+            ranks = evalTransE(head, relation, tail, simMeasure, **kwargs)
+        elif model == "TransH":
+            ranks = evalTransH(head, relation, tail, simMeasure, **kwargs)
+        elif model == "TransD":
+            ranks = evalTransD(head, relation, tail, simMeasure, **kwargs)
+        elif model == "TransA":
+            ranks = evalTransA(head, relation, tail, **kwargs)
+        elif model == "KG2E":
+            ranks = evalKG2E(head, relation, tail, **kwargs)
+        else:
+            print("ERROR : The %s evaluation is not supported!" % model)
+            exit(1)
+        R += np.sum(ranks)
+        N += ranks.shape[0]
+    return (R / N)

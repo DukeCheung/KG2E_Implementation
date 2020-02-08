@@ -201,7 +201,7 @@ class trainTriples():
         bestMR = float("inf")
         GLOBALSTEP = 0
         GLOBALEPOCH = 0
-        for seed in range(0,40): # Origin is 100
+        for seed in range(0,50): # Origin is 100
             print("INFO : Using seed %d" % seed)
             self.dataloader = prepareDataloader(self.args, repSeed=seed, exSeed=seed, headSeed=seed, tailSeed=seed)
             for epoch in range(EPOCHS):
@@ -251,12 +251,14 @@ class trainTriples():
                                                  **self.model.retEvalWeights())
                     sumWriter.add_scalar('train/eval', MR, global_step=GLOBALEPOCH)
                     print("[EVALUATION-EPOCH(%d/%d)]Measure method %s, eval %.4f"% \
-                          (epoch+1, EPOCHS, self.args.evalmethod, MR[0]))
+                          (epoch+1, EPOCHS, self.args.evalmethod, MR))
+                    '''
                     print("[EVALUATION-EPOCH(%d/%d)]Measure method HITS@10, eval %.4f"% \
                           (epoch+1, EPOCHS, MR[1]))
+                    '''
                     # Save the model if new MR is better
-                    if MR[0] < bestMR:
-                        bestMR = MR[0]
+                    if MR < bestMR:
+                        bestMR = MR
                         self.saveModel()
                         self.dumpEmbedding()
 
@@ -327,23 +329,15 @@ class trainTriples():
 
 if __name__ == "__main__":
     # Print args
-    print('DEBUG ARGS1')
     print(args)
     utils.printArgs(args)
-    print('DEBUG ARGS2')
     sumWriter = SummaryWriter(log_dir=args.summarydir)
-    print('DEBUG ARGS3')
     trainModel = trainTriples(args)
-    print('DEBUG ARGS4')
     trainModel.prepareData()
-    print('DEBUG ARGS5')
     trainModel.prepareModel()
-    print('DEBUG ARGS6')
-    # trainModel.loadPretrainModel()
+    trainModel.loadPretrainModel()
     if args.loadembed:
         trainModel.loadPretrainEmbedding()
-        print('DEBUG ARG7')
-    print('DEBUG ARGS8')
     trainModel.fit()
     print('Complete')
 

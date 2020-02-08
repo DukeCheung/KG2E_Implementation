@@ -68,8 +68,8 @@ class Config():
         self.modelsave = "param"
         # self.modelsave = "full"
         self.modelpath = "./source/model/"
-        self.loadembed = False
-        # self.loadembed = True
+        #self.loadembed = False
+        self.loadembed = True
         self.entityfile = "./source/embed/entityEmbedding.txt"
         self.entityCovarFile = "./source/embed/entityCovar.txt"
         self.relationfile = "./source/embed/relationEmbedding.txt"
