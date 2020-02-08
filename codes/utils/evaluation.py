@@ -246,13 +246,7 @@ def calKLSim(headMatrix, headCoMatrix, relationMatrix, relationCoMatrix, tailMat
 
 def evalKG2E(head, relation, tail, **kwargs):
     # Gather embedding
-    print('head')
-    print(head)
     headv = np.take(kwargs["entityCovar"], indices=head, axis=0)
-    print('headV')
-    print(headv.shape)
-    print('entityEmbed')
-    print(kwargs["entityEmbed"].shape)
     headm = np.take(kwargs["entityEmbed"], indices=head, axis=0)
     relationv = np.take(kwargs["relationCovar"], indices=relation, axis=0)
     relationm = np.take(kwargs["relationEmbed"], indices=relation, axis=0)
@@ -269,7 +263,8 @@ Implementation of MR metric, MR represents Mean Rank Metric
 ==> evalloader: Dataloader of evaluation triples
 ==> **kwargs : Neccessary model parameters used to evaluate
 '''
-def EvaluationMetric(evalloader:dataloader, model, simMeasure="dot", **kwargs):
+
+def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
     #R = 0
     N = 0
     MR = 0
@@ -301,18 +296,34 @@ def EvaluationMetric(evalloader:dataloader, model, simMeasure="dot", **kwargs):
         N += head.shape[0]
     return [(MR/N), (HITS/N)]
     #return (R / N)
-
-def LinkPredictionMR(evalloader:dataloader, model, simMeasure="dot", **kwargs):
-    return
-
-def LinkPredictionHITS(evalloader:dataloader, model, simMeasure="dot", **kwargs):
-    
-    return
-def ClassificationMR(evalloader:dataloader, model, simMeasure="dot", **kwargs):
-    
-    return
-def ClassificationHITS(evalloader:dataloader, model, simMeasure="dot", **kwargs):
-    return
+'''
+def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
+    R = 0
+    N = 0
+    for tri in evalloader:
+        # tri : shape(N, 3)
+        # head : shape(N, 1) ==> shape(N)
+        # relation : shape(N, 1) ==> shape(N)
+        # tail : shape(N, 1) ==> shape(N)
+        tri = tri.numpy()
+        head, relation, tail = tri[:, 0], tri[:, 1], tri[:, 2]
+        if model == "TransE":
+            ranks = evalTransE(head, relation, tail, simMeasure, **kwargs)
+        elif model == "TransH":
+            ranks = evalTransH(head, relation, tail, simMeasure, **kwargs)
+        elif model == "TransD":
+            ranks = evalTransD(head, relation, tail, simMeasure, **kwargs)
+        elif model == "TransA":
+            ranks = evalTransA(head, relation, tail, **kwargs)
+        elif model == "KG2E":
+            ranks = evalKG2E(head, relation, tail, **kwargs)
+        else:
+            print("ERROR : The %s evaluation is not supported!" % model)
+            exit(1)
+        R += np.sum(ranks)
+        N += ranks.shape[0]
+    return (R / N)
+'''
 
 
 
