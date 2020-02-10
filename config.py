@@ -15,7 +15,8 @@ class Config():
         self.savetype = "txt"
 
         # Dataloader arguments
-        self.batchsize = 1024
+        # self.batchsize = 1024
+        self.batchsize = 1440
         self.shuffle = True
         self.numworkers = 0
         self.droplast = False
@@ -47,11 +48,11 @@ class Config():
                        "Vmin":         0.03,
                        "Vmax":         3.0}
         '''
-        self.KG2E   = {"EmbeddingDim": 100,
-                       "Margin":       4.0,
+        self.KG2E   = {"EmbeddingDim": 50,
+                       "Margin":       1.0,
                        "Sim":          "KL",
-                       "Vmin":         0.03,
-                       "Vmax":         3.0}
+                       "Vmin":         0.05,
+                       "Vmax":         5.0}
         
         self.usegpu = torch.cuda.is_available()
         self.gpunum = 0
@@ -68,8 +69,8 @@ class Config():
         self.modelsave = "param"
         # self.modelsave = "full"
         self.modelpath = "./source/model/"
-        #self.loadembed = False
-        self.loadembed = True
+        self.loadembed = False
+        #self.loadembed = True
         self.entityfile = "./source/embed/entityEmbedding.txt"
         self.entityCovarFile = "./source/embed/entityCovar.txt"
         self.relationfile = "./source/embed/relationEmbedding.txt"

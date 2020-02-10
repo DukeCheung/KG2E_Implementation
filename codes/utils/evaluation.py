@@ -251,10 +251,10 @@ def evalKG2E(head, relation, tail, **kwargs):
     relationm = np.take(kwargs["relationEmbed"], indices=relation, axis=0)
     # Calculate simScore
     simScore = calKLSim(headm, headv, relationm, relationv, kwargs["entityEmbed"], kwargs["entityCovar"], simMeasure=kwargs["Sim"])
-    #hits = HITSMetric(simScore, tail, simMeasure="L2")
+    hits = HITSMetric(simScore, tail, simMeasure="L2")
     ranks = calRank(simScore, tail, simMeasure="L2")
     
-    return ranks
+    return [hits, ranks]
 
 '''
 Implementation of MR metric, MR represents Mean Rank Metric
@@ -264,7 +264,6 @@ Implementation of MR metric, MR represents Mean Rank Metric
 ==> **kwargs : Neccessary model parameters used to evaluate
 '''
 
-'''
 def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
     R = 0
     N = 0
@@ -320,3 +319,4 @@ def MREvaluation(evalloader:dataloader, model, simMeasure="dot", **kwargs):
         R += np.sum(ranks)
         N += ranks.shape[0]
     return (R / N)
+'''

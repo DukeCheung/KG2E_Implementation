@@ -201,7 +201,7 @@ class trainTriples():
         bestMR = float("inf")
         GLOBALSTEP = 0
         GLOBALEPOCH = 0
-        for seed in range(0,50): # Origin is 100
+        for seed in range(0,100): # Origin is 100
             print("INFO : Using seed %d" % seed)
             self.dataloader = prepareDataloader(self.args, repSeed=seed, exSeed=seed, headSeed=seed, tailSeed=seed)
             for epoch in range(EPOCHS):
@@ -244,7 +244,11 @@ class trainTriples():
                     
                 if GLOBALEPOCH % self.args.lrdecayepoch == 0:
                     adjust_learning_rate(optimizer, decay=self.args.lrdecay)
+                
                 if GLOBALEPOCH % self.args.evalepoch == 0:
+                    self.saveModel()
+                    self.dumpEmbedding()
+                    '''
                     MR = evaluation.MREvaluation(evalloader=self.evalloader,
                                                  model=self.args.modelname,
                                                  simMeasure=args.simmeasure,
@@ -252,15 +256,25 @@ class trainTriples():
                     sumWriter.add_scalar('train/eval', MR, global_step=GLOBALEPOCH)
                     print("[EVALUATION-EPOCH(%d/%d)]Measure method %s, eval %.4f"% \
                           (epoch+1, EPOCHS, self.args.evalmethod, MR))
-                    '''
                     print("[EVALUATION-EPOCH(%d/%d)]Measure method HITS@10, eval %.4f"% \
                           (epoch+1, EPOCHS, MR[1]))
-                    '''
                     # Save the model if new MR is better
                     if MR < bestMR:
                         bestMR = MR
                         self.saveModel()
                         self.dumpEmbedding()
+                '''
+            if seed == 49 or seed == 99:
+                MR = evaluation.MREvaluation(evalloader=self.evalloader,
+                                                 model=self.args.modelname,
+                                                 simMeasure=args.simmeasure,
+                                                 **self.model.retEvalWeights())
+                sumWriter.add_scalar('train/eval', MR[0], global_step=GLOBALEPOCH)
+                print("[EVALUATION-EPOCH(%d/%d)]Measure method %s, eval %.4f"% \
+                          (epoch+1, EPOCHS, self.args.evalmethod, MR[0]))
+                print("[EVALUATION-EPOCH(%d/%d)]Measure method HITS@10, eval %.4f"% \
+                          (epoch+1, EPOCHS, MR[1]))
+                
 
     def saveModel(self):
         if self.args.modelsave == "param":
@@ -335,7 +349,7 @@ if __name__ == "__main__":
     trainModel = trainTriples(args)
     trainModel.prepareData()
     trainModel.prepareModel()
-    trainModel.loadPretrainModel()
+    #trainModel.loadPretrainModel()
     if args.loadembed:
         trainModel.loadPretrainEmbedding()
     trainModel.fit()

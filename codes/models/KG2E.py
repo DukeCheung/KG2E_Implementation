@@ -5,7 +5,6 @@ import codecs
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-import math
 
 class KG2E(nn.Module):
     def __init__(self, entityNum, relationNum, embeddingDim, margin=1.0, sim="KL", vmin=0.03, vmax=3.0):
