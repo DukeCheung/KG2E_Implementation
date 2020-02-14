@@ -201,8 +201,18 @@ class trainTriples():
         bestMR = float("inf")
         GLOBALSTEP = 0
         GLOBALEPOCH = 0
-        '''
-        for seed in range(1,100): # Origin is 100
+        # test
+        MR = evaluation.MREvaluation(evalloader=self.evalloader,
+                                                 model=self.args.modelname,
+                                                 simMeasure=args.simmeasure,
+                                                 **self.model.retEvalWeights())
+                
+        print("Measure method %s, eval %.4f"% \
+                  (self.args.evalmethod, MR[0]))
+        print("Measure method HITS@10, eval %.4f"% \
+                  (MR[1]))
+                
+        for seed in range(99,100): # Origin is 100
             print("INFO : Using seed %d" % seed)
             self.dataloader = prepareDataloader(self.args, repSeed=seed, exSeed=seed, headSeed=seed, tailSeed=seed)
             for epoch in range(EPOCHS):
