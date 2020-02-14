@@ -201,7 +201,8 @@ class trainTriples():
         bestMR = float("inf")
         GLOBALSTEP = 0
         GLOBALEPOCH = 0
-        for seed in range(5,100): # Origin is 100
+        '''
+        for seed in range(1,100): # Origin is 100
             print("INFO : Using seed %d" % seed)
             self.dataloader = prepareDataloader(self.args, repSeed=seed, exSeed=seed, headSeed=seed, tailSeed=seed)
             for epoch in range(EPOCHS):

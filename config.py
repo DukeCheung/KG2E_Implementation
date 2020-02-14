@@ -69,13 +69,13 @@ class Config():
         self.modelsave = "param"
         # self.modelsave = "full"
         self.modelpath = "./source/model/"
-        # self.loadembed = False
+        #self.loadembed = False
         self.loadembed = True
         self.entityfile = "./source/embed/entityEmbedding.txt"
         self.entityCovarFile = "./source/embed/entityCovar.txt"
         self.relationfile = "./source/embed/relationEmbedding.txt"
         self.relationCovarFile = "./source/embed/relationCovar.txt"
-        self.premodel = "./source/model/KG2E_ent100_rel100.param"
+        self.premodel = "./source/model/KG2E_ent50_rel50.param"
         # self.premodel = "./source/model/TransE_ent128_rel128.param"
 
         # Other arguments
